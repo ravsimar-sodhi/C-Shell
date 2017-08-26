@@ -89,7 +89,7 @@ int ls(char* path)
         printf("%s ",time);
         
         if(S_ISDIR(statBuf.st_mode))
-            printf("%s/\n",readir->d_name);
+            printf("\033[1;34m%s\033[0m/\n",readir->d_name);
         else 
             printf("%s\n",readir->d_name);
         
