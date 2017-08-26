@@ -88,7 +88,9 @@ int ls(char* path)
         time = getLastModTime(statBuf);
         printf("%s ",time);
         
-        if(S_ISDIR(statBuf.st_mode))
+        if (S_ISLNK(statBuf.st_mode))
+            printf("\033[1;36m%s\033[0m\n",readir->d_name);
+        else if(S_ISDIR(statBuf.st_mode))
             printf("\033[1;34m%s\033[0m/\n",readir->d_name);
         else 
             printf("%s\n",readir->d_name);
