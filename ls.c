@@ -16,13 +16,13 @@ void getPermissions(struct stat info,char* perm)
     if(info.st_mode & S_IWUSR) perm[2]='w';
     if(info.st_mode & S_IXUSR) perm[3]='x';
 
-    if(info.st_mode & S_IRUSR) perm[4]='r';
-    if(info.st_mode & S_IWUSR) perm[5]='w';
-    if(info.st_mode & S_IXUSR) perm[6]='x';
+    if(info.st_mode & S_IRGRP) perm[4]='r';
+    if(info.st_mode & S_IWGRP) perm[5]='w';
+    if(info.st_mode & S_IXGRP) perm[6]='x';
    
-    if(info.st_mode & S_IRUSR) perm[7]='r';
-    if(info.st_mode & S_IWUSR) perm[8]='w';
-    if(info.st_mode & S_IXUSR) perm[9]='x';
+    if(info.st_mode & S_IROTH) perm[7]='r';
+    if(info.st_mode & S_IWOTH) perm[8]='w';
+    if(info.st_mode & S_IXOTH) perm[9]='x';
     return ;
     
 }
