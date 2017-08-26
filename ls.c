@@ -10,7 +10,8 @@ void getPermissions(struct stat info,char* perm)
     int i;
     for(i=0;i<10;i++) perm[i] = '-';
     
-    if(S_ISDIR(info.st_mode)) perm[0]='d';
+    if(S_ISLNK(info.st_mode)) perm[0]='l';
+    else if(S_ISDIR(info.st_mode)) perm[0]='d';
     
     if(info.st_mode & S_IRUSR) perm[1]='r';
     if(info.st_mode & S_IWUSR) perm[2]='w';
@@ -67,7 +68,7 @@ int ls(char* path)
         //printf("\n");
         // ls -al
         struct stat statBuf;
-        stat(readir->d_name,&statBuf);
+        lstat(readir->d_name,&statBuf);
         
         char perm[10];
         getPermissions(statBuf,perm);
@@ -87,7 +88,10 @@ int ls(char* path)
         time = getLastModTime(statBuf);
         printf("%s ",time);
         
-        printf("%s\n",readir->d_name);
+        if(S_ISDIR(statBuf.st_mode))
+            printf("%s/\n",readir->d_name);
+        else 
+            printf("%s\n",readir->d_name);
         
         //printf("%ld\n",info.st_blksize);
         //printf("%ld\n",info.st_blocks);
