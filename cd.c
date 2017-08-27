@@ -3,7 +3,5 @@
 void cd(const char* path)
 {
     if(!chdir(path))
-        //print: Error changing directory//
-    printf("fdaf");
     return ;
 }
