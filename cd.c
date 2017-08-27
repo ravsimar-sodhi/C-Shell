@@ -7,9 +7,3 @@ void cd(const char* path)
     printf("fdaf");
     return ;
 }
-int main()
-{
-    char* path = "/home/ravsimar";
-    cd(path);
-    return 0;
-}

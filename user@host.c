@@ -16,7 +16,3 @@ char* getHostName()
     ;
     return name;
 }
-int main()
-{
-    printf("%s@%s",getUserName(),getHostName());
-}

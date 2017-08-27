@@ -95,17 +95,9 @@ int ls(char* path)
         else 
             printf("%s\n",readir->d_name);
         
-        //printf("%ld\n",info.st_blksize);
-        //printf("%ld\n",info.st_blocks);
     }
     closedir(dp);
     printf("\n");
     return 0;
 }
 
-int main()
-{
-    ls(".");
-    //If no args are given, should take pwd as arg//
-    return 0;
-}

@@ -8,8 +8,3 @@ char* getPWD()
         // print: Error obtaining current directory//
     return buf;
 }
-int main()
-{
-    printf("%s\n",getPWD());
-    return 0;
-}
