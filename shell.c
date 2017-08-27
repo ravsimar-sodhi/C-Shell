@@ -21,15 +21,16 @@ char* getInput()
             break;
     }
 }
+
 void parseInput(char* line)
 {
     char* token = strtok(line,";");
+  //  char** tokenHolder = malloc(sizeof(char*) * );
     while(token != NULL)
     {
         printf("%s\n",token);
         token = strtok(NULL,";");
     }
-    return ;
 }
 
 int main()
@@ -50,10 +51,11 @@ int main()
         }  
         else
             PWD = fullPWD;      
-        printf("<%s@%s:%s>",getUserName(),getHostName(),PWD);
+        printf("\033[1;32m<%s@\033[0m\033[1;32m%s\033[0m:\033[1;34m%s>\033[0m",getUserName(),getHostName(),PWD);
+        
         char* line = getInput();
         parseInput(line);
-        cd("/home");
+        //cd("/home");
         //printf("%s",line);
     }
     while(1);
