@@ -55,6 +55,7 @@ int main()
         
         char* line = getInput();
         parseInput(line);
+        ls(".");
         //cd("/home");
         //printf("%s",line);
     }

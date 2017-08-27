@@ -59,10 +59,13 @@ int ls(char* path)
 {
     // This shows hidden files also//
     // Effectively, this is 'ls -a'
-    DIR* dp = opendir(path);
+    int i = 0;
     struct dirent* readir;
-    while((readir = readdir(dp)) != NULL)
+    struct dirent** scdir;
+    int dirNo = scandir(path,&scdir,NULL,alphasort);
+    while(i < dirNo)
     {
+        readir = scdir[i];
         // ls -a
         //printf("%s\t",readir->d_name);
         //printf("\n");
@@ -70,7 +73,8 @@ int ls(char* path)
         struct stat statBuf;
         lstat(readir->d_name,&statBuf);
         
-        char perm[10];
+        char perm[11];
+        perm[10] = '\0';
         getPermissions(statBuf,perm);
         printf("%s ",perm);
         
@@ -89,15 +93,22 @@ int ls(char* path)
         printf("%s ",time);
         
         if (S_ISLNK(statBuf.st_mode))
-            printf("\033[1;36m%s\033[0m\n",readir->d_name);
+        {
+            size_t linkBufSize = 100;
+            char* linkBuf = malloc(sizeof(char) * linkBufSize);
+            readlink(readir->d_name,linkBuf, linkBufSize);
+            printf("\033[1;36m%s\033[0m -> %s\n",readir->d_name,linkBuf);
+        
+        }
         else if(S_ISDIR(statBuf.st_mode))
             printf("\033[1;34m%s\033[0m/\n",readir->d_name);
         else 
             printf("%s\n",readir->d_name);
-        
+        i++;
     }
-    closedir(dp);
     printf("\n");
+    //free(readir);
+    //free(scdir);
     return 0;
 }
 
