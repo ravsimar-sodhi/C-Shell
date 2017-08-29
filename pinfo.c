@@ -3,15 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-int main()
+char* pinfo(int pid)
 {
-	char* spath=malloc(100),ppath[50],expath[100010],*status=malloc(5),*mem=malloc(100);
+	char* spath=malloc(100),*ppath = malloc(sizeof(char)*50),*apath = malloc(sizeof(char)*50),*expath = malloc(sizeof(char)* 1000),*status=malloc(5),*mem=malloc(100);
 	char buf[100010];
-	int pid=2520;
 	sprintf(spath,"/proc/%d/stat",pid);
-	sprintf(ppath,"/proc/%d/cmdline",pid);
+	sprintf(apath,"/proc/%d/exe",pid);
 	int fd = open(ppath,O_RDONLY);
-	read(fd,expath,100010);
+	readlink(apath,expath,1000);
+    read(fd,expath,100010);
 	fd = open(spath,O_RDONLY);
 	read(fd,buf,100010);
 	char * token = strtok(buf," ");
@@ -25,6 +25,7 @@ int main()
 		if(i==23)
 			mem=token;
 	}
-	printf("pid              -  %d\nProcess Status   -   %s\nMemory           -   %s{virtual memory\nExecutable Path  -  %s\n",pid,status,mem,expath);
-	return 0;
+    char* res = malloc(sizeof(char) * 250);
+	sprintf(res,"pid              -  %d\nProcess Status   -   %s\nMemory           -   %s{virtual memory}\nExecutable Path  -  %s\n",pid,status,mem,expath);
+	return res;
 }

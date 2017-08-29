@@ -2,6 +2,7 @@
 #include "pwd.c"
 #include "cd.c"
 #include "user@host.c"
+#include "pinfo.c"
 
 #include<string.h>
 char* getInput()
@@ -55,7 +56,9 @@ int main()
         
         char* line = getInput();
         parseInput(line);
-        ls(".");
+        //ls(".");
+        printf("%s\n",pinfo(getpid()));
+//        printf("%s\n",pinfo(12815));
         //cd("/home");
         //printf("%s",line);
     }
