@@ -78,6 +78,7 @@ int ls(char* path)
         getPermissions(statBuf,perm);
         printf("%s ",perm);
         
+        printf("%d ",statBuf.st_nlink);
         char* user;
         user = getUser(statBuf);
         printf("%*s ",10,user);
