@@ -23,20 +23,24 @@ char* getInput()
     }
 }
 
-void parseInput(char* line)
+int parseInput(char* line,char*** commQ)
 {
-    char* token = strtok(line,";");
-  //  char** tokenHolder = malloc(sizeof(char*) * );
-    while(token != NULL)
+    int i = 0 ;
+    (*commQ)[i] = strtok(line,";");
+    while(commQ[i] != NULL)
     {
-        printf("%s\n",token);
-        token = strtok(NULL,";");
+        printf("%s\n",(*commQ)[i]);
+        i++;
+        (*commQ)[i] = strtok(NULL,";");
     }
+    printf("parse end\n");
+    return i-1;
 }
 
 int main()
 {
     const char* HOME = getPWD();
+    int i;
     //printf("%s",HOME);    
     do
     {
@@ -55,10 +59,18 @@ int main()
         printf("\033[1;32m<%s@\033[0m\033[1;32m%s\033[0m:\033[1;34m%s>\033[0m",getUserName(),getHostName(),PWD);
         
         char* line = getInput();
-        parseInput(line);
+        char** commQ =  malloc(sizeof(char*) * 100);
+        int commN = 0;
+        commN = parseInput(line,&commQ);
+        for (i=0;i<commN;i++)
+        {
+            printf("%s\n",commQ[i]);
+        }
+        free(PWD);
+        free(commQ);
         //ls(".");
-        printf("%s\n",pinfo(getpid()));
-//        printf("%s\n",pinfo(12815));
+       // printf("%s\n",pinfo(getpid()));
+//      printf("%s\n",pinfo(12815));
         //cd("/home");
         //printf("%s",line);
     }
