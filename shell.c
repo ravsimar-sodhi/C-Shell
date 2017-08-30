@@ -3,7 +3,7 @@
 #include "cd.c"
 #include "user@host.c"
 #include "pinfo.c"
-
+#include "echo.c"
 #include<string.h>
 
 char* HOME;
@@ -40,6 +40,12 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     int i = 0;
     char* token = strtok(fullComm," ");
     *mainComm = token;
+    if(strcmp(*mainComm,"echo") == 0)
+    {
+        token = strtok(NULL,";");
+        (*args)[0] =  token;
+        return 1;
+    }
     while(token != NULL)
     {
         token = strtok(NULL," ");
@@ -47,7 +53,7 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     }
     return i-1;
 }
-void checkBuiltIn(char* comm,char** args)
+int checkBuiltIn(char* comm,char** args)
 {
    // if(comm == "ls")
     char* output;
@@ -62,6 +68,11 @@ void checkBuiltIn(char* comm,char** args)
             cd(args[0]);
         else
             cd(HOME);
+    }
+    else if(strcmp(comm,"echo") == 0)
+    {
+        output = echo(args[0]);
+        printf("%s\n",output);
     }
     else if(strcmp(comm,"pinfo") == 0)
     {
@@ -100,8 +111,8 @@ void checkBuiltIn(char* comm,char** args)
         }
     }
     else 
-        printf("%s",comm);
-    return; 
+        return 0;
+    return 1; 
 }
 int main()
 {
