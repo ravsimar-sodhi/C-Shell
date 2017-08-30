@@ -9,8 +9,8 @@ void getPermissions(struct stat info,char* perm)
 {
     int i;
     for(i=0;i<10;i++) perm[i] = '-';
-    
-    if(S_ISLNK(info.st_mode)) perm[0]='l';
+
+        if(S_ISLNK(info.st_mode)) perm[0]='l';
     else if(S_ISDIR(info.st_mode)) perm[0]='d';
     
     if(info.st_mode & S_IRUSR) perm[1]='r';
@@ -20,7 +20,7 @@ void getPermissions(struct stat info,char* perm)
     if(info.st_mode & S_IRGRP) perm[4]='r';
     if(info.st_mode & S_IWGRP) perm[5]='w';
     if(info.st_mode & S_IXGRP) perm[6]='x';
-   
+
     if(info.st_mode & S_IROTH) perm[7]='r';
     if(info.st_mode & S_IWOTH) perm[8]='w';
     if(info.st_mode & S_IXOTH) perm[9]='x';
@@ -55,7 +55,7 @@ char* getLastModTime(struct stat info)
     ans[k] = '\0';
     return ans;
 }
-int ls(char* path)
+int ls(char* path,int flag)
 {
     // This shows hidden files also//
     // Effectively, this is 'ls -a'
@@ -72,39 +72,63 @@ int ls(char* path)
         // ls -al
         struct stat statBuf;
         lstat(readir->d_name,&statBuf);
-        
-        char perm[11];
-        perm[10] = '\0';
-        getPermissions(statBuf,perm);
-        printf("%s ",perm);
-        
-        printf("%d ",statBuf.st_nlink);
-        char* user;
-        user = getUser(statBuf);
-        printf("%*s ",10,user);
-        
-        char* group;
-        group = getGroup(statBuf);
-        printf("%*s ",10,group);
-        
-        printf("%*ld ",10,statBuf.st_size);
-        
-        char* time;
-        time = getLastModTime(statBuf);
-        printf("%s ",time);
-        
+        if(flag==3 || (flag==2 && readir->d_name[0]!='.'))
+        {
+            char perm[11];
+            perm[10] = '\0';
+            getPermissions(statBuf,perm);
+            printf("%s ",perm);
+            
+            printf("%d ",statBuf.st_nlink);
+            char* user;
+            user = getUser(statBuf);
+            printf("%*s ",10,user);
+            
+            char* group;
+            group = getGroup(statBuf);
+            printf("%*s ",10,group);
+            
+            printf("%*ld ",10,statBuf.st_size);
+            
+            char* time;
+            time = getLastModTime(statBuf);
+            printf("%s ",time);
+            
+        }
         if (S_ISLNK(statBuf.st_mode))
         {
             size_t linkBufSize = 100;
             char* linkBuf = malloc(sizeof(char) * linkBufSize);
             readlink(readir->d_name,linkBuf, linkBufSize);
-            printf("\033[1;36m%s\033[0m -> %s\n",readir->d_name,linkBuf);
-        
+            if(readir->d_name[0]=='.')
+            {
+                if(flag&1)
+                    printf("\033[1;36m%s\033[0m -> %s\n",readir->d_name,linkBuf);
+            }
+            else
+                printf("\033[1;36m%s\033[0m -> %s\n",readir->d_name,linkBuf);
         }
         else if(S_ISDIR(statBuf.st_mode))
-            printf("\033[1;34m%s\033[0m/\n",readir->d_name);
+        {
+            if(readir->d_name[0]=='.')
+            {
+                if(flag&1)
+                    printf("\033[1;34m%s\033[0m/\n",readir->d_name);
+            }
+            else
+                printf("\033[1;34m%s\033[0m/\n",readir->d_name);
+
+        }
         else 
-            printf("%s\n",readir->d_name);
+        {
+            if(readir->d_name[0]=='.')
+            {
+                if(flag&1)
+                    printf("%s\n",readir->d_name);
+            }
+            else
+                printf("%s\n",readir->d_name);
+        }
         i++;
     }
     printf("\n");
