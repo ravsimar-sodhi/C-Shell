@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <string.h>
 #include <wait.h>
+#include "echo.c"
 char* HOME;
 char* getInput()
 {
@@ -40,6 +41,12 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     int i = 0;
     char* token = strtok(fullComm," \t\n");
     *mainComm = token;
+    if(strcmp(*mainComm,"echo") == 0)
+    {
+        token = strtok(NULL,";");
+        (*args)[0] =  token;
+        return 1;
+    }
     while(token != NULL)
     {
         token = strtok(NULL," \t\n");
@@ -63,6 +70,12 @@ int checkBuiltIn(char* comm,char** args)
             cd(args[0]);
         else
             cd(HOME);
+        return 1;
+    }
+    else if(strcmp(comm,"echo") == 0)
+    {
+        output = echo(args[0]);
+        printf("%s\n",output);
         return 1;
     }
     else if(strcmp(comm,"pinfo") == 0)
@@ -90,7 +103,7 @@ void child_terminate()
             else if (pid == -1)
                 return;
             else
-                fprintf (stderr,"Process with id: %d terminted %s\n", pid,(wstat.w_retcode==0)?"normally":"abnormally");
+                fprintf (stderr,"Process with pid: %d terminted %s\n", pid,(wstat.w_retcode==0)?"normally":"abnormally");
         }
 }
 
