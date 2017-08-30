@@ -5,6 +5,8 @@
 #include "pinfo.c"
 
 #include<string.h>
+
+char* HOME;
 char* getInput()
 {
     ssize_t read;
@@ -45,9 +47,28 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     }
     return i-1;
 }
+void checkBuiltIn(char* comm,char** args)
+{
+   // if(comm == "ls")
+    if(strcmp(comm,"pwd") == 0)
+    {
+        char* output = getPWD();
+        printf("%s\n",output);
+    }
+    else if(strcmp(comm,"cd") == 0)
+    {
+        if(args[0] != NULL && strcmp(args[0],"~") != 0)
+            cd(args[0]);
+        else
+            cd(HOME);
+    }
+    else 
+        printf("%s",comm);
+    return; 
+}
 int main()
 {
-    const char* HOME = getPWD();
+    HOME = getPWD();
     int i;
     //printf("%s",HOME);    
     do
@@ -55,7 +76,6 @@ int main()
         char* fullPWD = getPWD();
         char* PWD = malloc(sizeof(char) * strlen(fullPWD));
         //printf("%s",fullPWD);
-        ls(".");
         if(strstr(fullPWD,HOME) != NULL)
         {
             PWD[0] = '~';
@@ -78,10 +98,11 @@ int main()
             char** args = malloc(sizeof(char*) * 10);
             int argN;
             argN = parseCommand(commQ[i],&mainComm,&args);
-            printf("%s\n",mainComm);
-            for (j = 0;j<argN;j++)
-                printf("%s\n",args[j]);
-            printf("\n");
+            checkBuiltIn(mainComm,args);
+        //    printf("%s\n",mainComm);
+          //  for (j = 0;j<argN;j++)
+           //     printf("%s\n",args[j]);
+           // printf("\n");
             //printf("%s\n",commQ[i]);
         }
         free(PWD);
