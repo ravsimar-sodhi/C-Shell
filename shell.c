@@ -27,16 +27,24 @@ int parseInput(char* line,char*** commQ)
 {
     int i = 0 ;
     (*commQ)[i] = strtok(line,";");
-    while(commQ[i] != NULL)
+    while((*commQ)[i] != NULL)
     {
-        printf("%s\n",(*commQ)[i]);
-        i++;
-        (*commQ)[i] = strtok(NULL,";");
+        (*commQ)[++i] = strtok(NULL,";");
     }
-    printf("parse end\n");
+    return i;
+}
+int parseCommand(char* fullComm,char** mainComm, char*** args)
+{
+    int i = 0;
+    char* token = strtok(fullComm," ");
+    *mainComm = token;
+    while(token != NULL)
+    {
+        token = strtok(NULL," ");
+        (*args)[i++] = token;
+    }
     return i-1;
 }
-
 int main()
 {
     const char* HOME = getPWD();
@@ -47,6 +55,7 @@ int main()
         char* fullPWD = getPWD();
         char* PWD = malloc(sizeof(char) * strlen(fullPWD));
         //printf("%s",fullPWD);
+        ls(".");
         if(strstr(fullPWD,HOME) != NULL)
         {
             PWD[0] = '~';
@@ -64,11 +73,19 @@ int main()
         commN = parseInput(line,&commQ);
         for (i=0;i<commN;i++)
         {
-            printf("%s\n",commQ[i]);
+            int j;
+            char* mainComm = malloc(sizeof(char) * 25);
+            char** args = malloc(sizeof(char*) * 10);
+            int argN;
+            argN = parseCommand(commQ[i],&mainComm,&args);
+            printf("%s\n",mainComm);
+            for (j = 0;j<argN;j++)
+                printf("%s\n",args[j]);
+            printf("\n");
+            //printf("%s\n",commQ[i]);
         }
         free(PWD);
         free(commQ);
-        //ls(".");
        // printf("%s\n",pinfo(getpid()));
 //      printf("%s\n",pinfo(12815));
         //cd("/home");
