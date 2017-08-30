@@ -30,6 +30,6 @@ char* pinfo(int pid)
 			mem=token;
 	}
     char* res = malloc(sizeof(char) * 250);
-	sprintf(res,"pid              -  %d\nProcess Status   -   %s\nMemory           -   %s{virtual memory}\nExecutable Path  -  %s\n",pid,status,mem,expath);
+	sprintf(res,"pid             -  %d\nProcess Status  -   %s\nMemory          -   %s{virtual memory}\nExecutable Path -  %s\n",pid,status,mem,expath);
 	return res;
 }

@@ -66,10 +66,38 @@ void checkBuiltIn(char* comm,char** args)
     else if(strcmp(comm,"pinfo") == 0)
     {
         if(args[0] != NULL)
-            output = pinfo(atoi(args[0]));
+        {
+            long pid = strtol(args[0],NULL,10);
+            output = pinfo(pid);
+        }
         else
             output = pinfo(getpid());
         printf("%s",output);
+    }
+    else if(strcmp(comm,"ls") == 0)
+    {
+        if(args[0] == NULL)
+        {
+            ls(".",0);
+        }
+        else
+        {
+            if(args[1] == NULL) 
+            {
+                if(strcmp(args[0],"-a") == 0)
+                    ls(".",1);
+                else if(strcmp(args[0],"-l") == 0)
+                    ls(".",2);
+                else if(strcmp(args[0],"-al") == 0 || strcmp(args[0],"-la") == 0 )
+                    ls(".",3);
+            }
+            else
+            {
+                if(!(strcmp(args[0],"-a") && !strcmp(args[1],"-l"))||(!strcmp(args[0],"-l") && !strcmp(args[1],"-a")))
+                    ls(".",3);
+            }
+            
+        }
     }
     else 
         printf("%s",comm);
