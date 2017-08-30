@@ -5,15 +5,20 @@
 #include <stdlib.h>
 char* pinfo(int pid)
 {
-	char* spath=malloc(100),*ppath = malloc(sizeof(char)*50),*apath = malloc(sizeof(char)*50),*expath = malloc(sizeof(char)* 1000),*status=malloc(5),*mem=malloc(100);
+	char* spath=malloc(100),*apath = malloc(sizeof(char)*50),*expath = malloc(sizeof(char)* 1000),*status=malloc(5),*mem=malloc(100);
 	char buf[100010];
 	sprintf(spath,"/proc/%d/stat",pid);
 	sprintf(apath,"/proc/%d/exe",pid);
-	int fd = open(ppath,O_RDONLY);
+	int fd;
 	readlink(apath,expath,1000);
     read(fd,expath,100010);
 	fd = open(spath,O_RDONLY);
-	read(fd,buf,100010);
+	if(fd < 0)
+    {
+        printf("Invalid PID\n");
+        return "";
+    }
+    read(fd,buf,100010);
 	char * token = strtok(buf," ");
 	int i=1;
 	while(token!=NULL)

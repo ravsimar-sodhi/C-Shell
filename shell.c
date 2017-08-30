@@ -50,9 +50,10 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
 void checkBuiltIn(char* comm,char** args)
 {
    // if(comm == "ls")
+    char* output;
     if(strcmp(comm,"pwd") == 0)
     {
-        char* output = getPWD();
+        output = getPWD();
         printf("%s\n",output);
     }
     else if(strcmp(comm,"cd") == 0)
@@ -61,6 +62,14 @@ void checkBuiltIn(char* comm,char** args)
             cd(args[0]);
         else
             cd(HOME);
+    }
+    else if(strcmp(comm,"pinfo") == 0)
+    {
+        if(args[0] != NULL)
+            output = pinfo(atoi(args[0]));
+        else
+            output = pinfo(getpid());
+        printf("%s",output);
     }
     else 
         printf("%s",comm);
