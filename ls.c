@@ -10,7 +10,7 @@ void getPermissions(struct stat info,char* perm)
     int i;
     for(i=0;i<10;i++) perm[i] = '-';
 
-        if(S_ISLNK(info.st_mode)) perm[0]='l';
+    if(S_ISLNK(info.st_mode)) perm[0]='l';
     else if(S_ISDIR(info.st_mode)) perm[0]='d';
     
     if(info.st_mode & S_IRUSR) perm[1]='r';
@@ -79,7 +79,7 @@ int ls(char* path,int flag)
             getPermissions(statBuf,perm);
             printf("%s ",perm);
             
-            printf("%d ",statBuf.st_nlink);
+            printf("%*lu ",5,statBuf.st_nlink);
             char* user;
             user = getUser(statBuf);
             printf("%*s ",10,user);
@@ -131,7 +131,6 @@ int ls(char* path,int flag)
         }
         i++;
     }
-    printf("\n");
     //free(readir);
     //free(scdir);
     return 0;
