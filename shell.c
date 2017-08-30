@@ -8,6 +8,13 @@
 #include <wait.h>
 #include "echo.c"
 char* HOME;
+typedef struct process
+{
+    int proid;
+    char *name;
+}process;
+process dict[100];
+int procNo=0;
 char* getInput()
 {
     ssize_t read;
@@ -95,7 +102,7 @@ void child_terminate()
 {
         union wait wstat;
         pid_t   pid;
-
+        char *pname=malloc(100);
         while (1) {
             pid = wait3 (&wstat, WNOHANG, (struct rusage *)NULL );
             if (pid == 0)
@@ -103,7 +110,15 @@ void child_terminate()
             else if (pid == -1)
                 return;
             else
-                fprintf (stderr,"Process with pid: %d terminted %s\n", pid,(wstat.w_retcode==0)?"normally":"abnormally");
+            {
+                int i;
+                for(i=0;i<procNo;i++)
+                {
+                    if(dict[i].proid==pid)
+                        pname=dict[i].name;
+                } 
+                fprintf (stderr,"%s with pid: %d terminted %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
+            }
         }
 }
 
@@ -140,28 +155,65 @@ int main()
             char** args = malloc(sizeof(char*) * 10);
             int argN;
             argN = parseCommand(commQ[i],&mainComm,&args);
-            if(strcmp(mainComm,"exit")==0)
+            if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
                 exit(0);
-            int builtin = checkBuiltIn(mainComm,args);
-            if(!builtin)
+            else if(strcmp(mainComm,"ls") == 0)
             {
-                pid_t pid;
-                pid=fork();
-                if(pid==0)
+                if(args[0] == NULL)
                 {
-                    char *exec_arr[2];
-                    exec_arr[0]=mainComm;
-                    exec_arr[1]=NULL;
-                    execvp(mainComm,exec_arr);
-                    printf("Failed to execute\n");
-                    exit(0);
+                    ls(".",0);
                 }
                 else
                 {
-                    if(args[0]==NULL || strcmp(args[0],"&")!=0)
-                        wait(NULL);
+                    if(args[1] == NULL) 
+                    {
+                        if(strcmp(args[0],"-a") == 0)
+                            ls(".",1);
+                        else if(strcmp(args[0],"-l") == 0)
+                            ls(".",2);
+                        else if(strcmp(args[0],"-al") == 0 || strcmp(args[0],"-la") == 0 )
+                            ls(".",3);
+                    }
                     else
-                        printf("%s [%d] started\n",mainComm,pid);
+                    {
+                        if(!(strcmp(args[0],"-a") && !strcmp(args[1],"-l"))||(!strcmp(args[0],"-l") && !strcmp(args[1],"-a")))
+                            ls(".",3);
+                    }
+                    
+                }
+            }
+            else
+            {
+                int builtin = checkBuiltIn(mainComm,args);
+                if(!builtin)
+                {
+                    pid_t pid;
+                    pid=fork();
+                    if(pid==0)
+                    {
+                        char *exec_arr[20];
+                        exec_arr[0]=mainComm;
+                        int z;
+                        for (z=0;z<=argN;z++)
+                        {
+                            exec_arr[z+1]=args[z];
+                        }
+                        execvp(mainComm,exec_arr);
+                        printf("Failed to execute\n");
+                        exit(0);
+                    }
+                    else
+                    {
+                        if(args[0]==NULL || strcmp(args[0],"&")!=0)
+                            wait(NULL);
+                        else
+                        {
+                            dict[procNo].proid = pid;
+                            dict[procNo].name = mainComm;
+                            procNo++;
+                            printf("%s [%d] started\n",mainComm,pid);
+                        }
+                    }
                 }
             }
         //    printf("%s\n",mainComm);
