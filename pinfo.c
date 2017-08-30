@@ -11,7 +11,6 @@ char* pinfo(int pid)
 	sprintf(apath,"/proc/%d/exe",pid);
 	int fd;
 	readlink(apath,expath,1000);
-    read(fd,expath,100010);
 	fd = open(spath,O_RDONLY);
 	if(fd < 0)
     {
