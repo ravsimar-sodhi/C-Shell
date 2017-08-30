@@ -3,9 +3,9 @@
 #include "cd.c"
 #include "user@host.c"
 #include "pinfo.c"
-
-#include<string.h>
-
+#include <signal.h>
+#include <string.h>
+#include <wait.h>
 char* HOME;
 char* getInput()
 {
@@ -38,16 +38,16 @@ int parseInput(char* line,char*** commQ)
 int parseCommand(char* fullComm,char** mainComm, char*** args)
 {
     int i = 0;
-    char* token = strtok(fullComm," ");
+    char* token = strtok(fullComm," \t\n");
     *mainComm = token;
     while(token != NULL)
     {
-        token = strtok(NULL," ");
+        token = strtok(NULL," \t\n");
         (*args)[i++] = token;
     }
     return i-1;
 }
-void checkBuiltIn(char* comm,char** args)
+int checkBuiltIn(char* comm,char** args)
 {
    // if(comm == "ls")
     char* output;
@@ -55,6 +55,7 @@ void checkBuiltIn(char* comm,char** args)
     {
         output = getPWD();
         printf("%s\n",output);
+        return 1;
     }
     else if(strcmp(comm,"cd") == 0)
     {
@@ -62,49 +63,40 @@ void checkBuiltIn(char* comm,char** args)
             cd(args[0]);
         else
             cd(HOME);
+        return 1;
     }
     else if(strcmp(comm,"pinfo") == 0)
     {
         if(args[0] != NULL)
-        {
-            long pid = strtol(args[0],NULL,10);
-            output = pinfo(pid);
-        }
+            output = pinfo(atoi(args[0]));
         else
             output = pinfo(getpid());
         printf("%s",output);
-    }
-    else if(strcmp(comm,"ls") == 0)
-    {
-        if(args[0] == NULL)
-        {
-            ls(".",0);
-        }
-        else
-        {
-            if(args[1] == NULL) 
-            {
-                if(strcmp(args[0],"-a") == 0)
-                    ls(".",1);
-                else if(strcmp(args[0],"-l") == 0)
-                    ls(".",2);
-                else if(strcmp(args[0],"-al") == 0 || strcmp(args[0],"-la") == 0 )
-                    ls(".",3);
-            }
-            else
-            {
-                if(!(strcmp(args[0],"-a") && !strcmp(args[1],"-l"))||(!strcmp(args[0],"-l") && !strcmp(args[1],"-a")))
-                    ls(".",3);
-            }
-            
-        }
+        return 1;
     }
     else 
-        printf("%s",comm);
-    return; 
+        return 0;
 }
+
+void child_terminate()
+{
+        union wait wstat;
+        pid_t   pid;
+
+        while (1) {
+            pid = wait3 (&wstat, WNOHANG, (struct rusage *)NULL );
+            if (pid == 0)
+                return;
+            else if (pid == -1)
+                return;
+            else
+                fprintf (stderr,"Process with id: %d terminted %s\n", pid,(wstat.w_retcode==0)?"normally":"abnormally");
+        }
+}
+
 int main()
 {
+    signal(SIGCHLD,child_terminate);
     HOME = getPWD();
     int i;
     //printf("%s",HOME);    
@@ -135,7 +127,30 @@ int main()
             char** args = malloc(sizeof(char*) * 10);
             int argN;
             argN = parseCommand(commQ[i],&mainComm,&args);
-            checkBuiltIn(mainComm,args);
+            if(strcmp(mainComm,"exit")==0)
+                exit(0);
+            int builtin = checkBuiltIn(mainComm,args);
+            if(!builtin)
+            {
+                pid_t pid;
+                pid=fork();
+                if(pid==0)
+                {
+                    char *exec_arr[2];
+                    exec_arr[0]=mainComm;
+                    exec_arr[1]=NULL;
+                    execvp(mainComm,exec_arr);
+                    printf("Failed to execute\n");
+                    exit(0);
+                }
+                else
+                {
+                    if(args[0]==NULL || strcmp(args[0],"&")!=0)
+                        wait(NULL);
+                    else
+                        printf("%s [%d] started\n",mainComm,pid);
+                }
+            }
         //    printf("%s\n",mainComm);
           //  for (j = 0;j<argN;j++)
            //     printf("%s\n",args[j]);
