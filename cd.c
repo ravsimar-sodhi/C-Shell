@@ -5,8 +5,6 @@ void cd(const char* path)
     if(chdir(path) == 0)
         return ;
     else
-    {
-        printf("Invalid path\n");
-    }
+        perror("cd");
     return ;
 }
