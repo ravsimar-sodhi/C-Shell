@@ -1,10 +1,11 @@
-#include<dirent.h>
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/stat.h>
-#include<pwd.h>
-#include<stdlib.h>
-#include<time.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
 void getPermissions(struct stat info,char* perm)
 {
     int i;
@@ -55,23 +56,59 @@ char* getLastModTime(struct stat info)
     ans[k] = '\0';
     return ans;
 }
-int ls(char* path,int flag)
+int ls(char **args,int argn)
 {
     // This shows hidden files also//
     // Effectively, this is 'ls -a'
-    int i = 0;
+    int i;
+    char *dir = malloc(100);
+    dir = ".";
+    struct stat a;
+    int flag=0;
+    for(i=0;i<argn;i++)
+    {
+        if(args[i][0]=='-')
+        {
+            if(strcmp(args[i],"-a")==0)
+            {
+                if(flag<2)
+                    flag=1;
+                else
+                    flag=3;
+            }
+            else if(strcmp(args[i],"-l")==0)
+            {
+                if(flag%2==0)
+                    flag=2;
+                else
+                    flag=3;
+            }
+            else if(strcmp(args[i],"-al")==0 || strcmp(args[i],"-la")==0)
+                flag=3;
+        }
+        else
+            dir = args[i];
+    }
+    if(stat(dir,&a)==-1)
+    {
+        if(!S_ISDIR(a.st_mode))
+        {
+            perror("ls");
+        }
+    }
+    i = 0;
     struct dirent* readir;
     struct dirent** scdir;
-    int dirNo = scandir(path,&scdir,NULL,alphasort);
+    int dirNo = scandir(dir,&scdir,NULL,alphasort);
     while(i < dirNo)
     {
         readir = scdir[i];
-        // ls -a
-        //printf("%s\t",readir->d_name);
-        //printf("\n");
-        // ls -al
+        char *item = malloc(100);
+        strcpy(item,dir);
+        strcat(item,"/");
+        strcat(item,readir->d_name);
         struct stat statBuf;
-        lstat(readir->d_name,&statBuf);
+        lstat(item,&statBuf);
         if(flag==3 || (flag==2 && readir->d_name[0]!='.'))
         {
             char perm[11];
@@ -99,7 +136,7 @@ int ls(char* path,int flag)
         {
             size_t linkBufSize = 100;
             char* linkBuf = malloc(sizeof(char) * linkBufSize);
-            readlink(readir->d_name,linkBuf, linkBufSize);
+            readlink(item,linkBuf, linkBufSize);
             if(readir->d_name[0]=='.')
             {
                 if(flag&1)

@@ -174,70 +174,14 @@ int main()
         {
             int j;
             char* mainComm = malloc(sizeof(char) * 25);
-            char** args = malloc(sizeof(char*) * 10);
+            char** args = malloc(sizeof(char*) * 100);
             int argN;
             argN = parseCommand(commQ[i],&mainComm,&args);
             if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
                 exit(0);
             else if(strcmp(mainComm,"ls") == 0)
             {
-                struct stat a;
-                if(args[0] == NULL)
-                {
-                    ls(".",0);
-                }
-                else
-                {
-                    if(args[1] == NULL) 
-                    {
-                        if(strcmp(args[0],"-a") == 0)
-                            ls(".",1);
-                        else if(strcmp(args[0],"-l") == 0)
-                            ls(".",2);
-                        else if(strcmp(args[0],"-al") == 0 || strcmp(args[0],"-la") == 0 )
-                            ls(".",3);
-                        else if(!stat(args[0],&a))
-                        {
-                            if(S_ISDIR(a.st_mode))
-                                ls(args[0],0);
-                            else
-                                printf("Invalid Directory\n");
-                        }
-                    }
-                    else
-                    {
-                        if((strcmp(args[0],"-a") == 0 && strcmp(args[1],"-l") == 0)||(strcmp(args[0],"-l") == 0 && strcmp(args[1],"-a") == 0))
-                        {
-                            if(args[2] != NULL)
-                            {
-                                if(!stat(args[2],&a))
-                                {
-                                    if(S_ISDIR(a.st_mode))
-                                        ls(args[2],3);
-                                    else
-                                        printf("Invalid Directory\n");
-                                }
-                            }
-                            else
-                                ls(".",3);
-                        }
-                        else
-                        {
-                            int flag = 0;
-                            if(strcmp(args[0],"-a") == 0) flag = 1;
-                            else if(strcmp(args[0],"-l") == 0) flag = 2;
-                            else if(strcmp(args[0],"-al") == 0) flag = 3;
-                            
-                            if(!stat(args[1],&a))
-                            {
-                                if(S_ISDIR(a.st_mode))
-                                    ls(args[1],flag);
-                                else
-                                    printf("Invalid Directory\n");
-                            }
-                        }
-                    }
-                }
+                ls(args,argN);
             }
             else
             {
