@@ -5,6 +5,6 @@ char* getPWD()
     char* buf=NULL;
     buf = getcwd(buf,100);
     if (buf == NULL)
-        // print: Error obtaining current directory//
+        perror("getPWD");
     return buf;
 }

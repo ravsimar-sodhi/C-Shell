@@ -73,8 +73,32 @@ int checkBuiltIn(char* comm,char** args)
     }
     else if(strcmp(comm,"cd") == 0)
     {
+        int i,k=0;
         if(args[0] != NULL && strcmp(args[0],"~") != 0)
-            cd(args[0]);
+        {    
+            if(strstr(args[0],"~") != NULL)
+            {
+                char* fullPath = malloc(sizeof(char) * 120);
+                for(i =0;i<strlen(args[0]);i++)
+                {
+                    if(args[0][i] != '~')
+                    {
+                        fullPath[k++] = args[0][i];
+                    }
+                    else
+                    {
+                        strcat(&fullPath[k],HOME);
+                        k += strlen(HOME);
+                    }
+                }
+
+                fullPath[k] = '\0';
+               // printf("%s\n",fullPath);
+                cd(fullPath);
+            }
+            else
+                cd(args[0]);
+        }
         else
             cd(HOME);
         return 1;
@@ -132,12 +156,10 @@ int main()
     {
         char* fullPWD = getPWD();
         char* PWD = malloc(sizeof(char) * strlen(fullPWD));
-        //printf("%s",fullPWD);
         if(strstr(fullPWD,HOME) != NULL)
         {
             PWD[0] = '~';
             PWD[1] = '\0';
-            //printf("substriing");
             strcat(PWD,fullPWD+strlen(HOME));
         }  
         else
@@ -159,6 +181,7 @@ int main()
                 exit(0);
             else if(strcmp(mainComm,"ls") == 0)
             {
+                struct stat a;
                 if(args[0] == NULL)
                 {
                     ls(".",0);
@@ -173,13 +196,47 @@ int main()
                             ls(".",2);
                         else if(strcmp(args[0],"-al") == 0 || strcmp(args[0],"-la") == 0 )
                             ls(".",3);
+                        else if(!stat(args[0],&a))
+                        {
+                            if(S_ISDIR(a.st_mode))
+                                ls(args[0],0);
+                            else
+                                printf("Invalid Directory\n");
+                        }
                     }
                     else
                     {
-                        if(!(strcmp(args[0],"-a") && !strcmp(args[1],"-l"))||(!strcmp(args[0],"-l") && !strcmp(args[1],"-a")))
-                            ls(".",3);
+                        if((strcmp(args[0],"-a") == 0 && strcmp(args[1],"-l") == 0)||(strcmp(args[0],"-l") == 0 && strcmp(args[1],"-a") == 0))
+                        {
+                            if(args[2] != NULL)
+                            {
+                                if(!stat(args[2],&a))
+                                {
+                                    if(S_ISDIR(a.st_mode))
+                                        ls(args[2],3);
+                                    else
+                                        printf("Invalid Directory\n");
+                                }
+                            }
+                            else
+                                ls(".",3);
+                        }
+                        else
+                        {
+                            int flag = 0;
+                            if(strcmp(args[0],"-a") == 0) flag = 1;
+                            else if(strcmp(args[0],"-l") == 0) flag = 2;
+                            else if(strcmp(args[0],"-al") == 0) flag = 3;
+                            
+                            if(!stat(args[1],&a))
+                            {
+                                if(S_ISDIR(a.st_mode))
+                                    ls(args[1],flag);
+                                else
+                                    printf("Invalid Directory\n");
+                            }
+                        }
                     }
-                    
                 }
             }
             else
@@ -216,18 +273,9 @@ int main()
                     }
                 }
             }
-        //    printf("%s\n",mainComm);
-          //  for (j = 0;j<argN;j++)
-           //     printf("%s\n",args[j]);
-           // printf("\n");
-            //printf("%s\n",commQ[i]);
         }
         free(PWD);
         free(commQ);
-       // printf("%s\n",pinfo(getpid()));
-//      printf("%s\n",pinfo(12815));
-        //cd("/home");
-        //printf("%s",line);
     }
     while(1);
     return 0;
