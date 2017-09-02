@@ -117,7 +117,7 @@ void child_terminate()
                     if(dict[i].proid==pid)
                         pname=dict[i].name;
                 } 
-                fprintf (stderr,"%s with pid: %d terminted %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
+                fprintf (stderr,"%s with pid: %d terminated %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
             }
         }
 }
