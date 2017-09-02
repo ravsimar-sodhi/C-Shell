@@ -73,8 +73,32 @@ int checkBuiltIn(char* comm,char** args)
     }
     else if(strcmp(comm,"cd") == 0)
     {
+        int i,k=0;
         if(args[0] != NULL && strcmp(args[0],"~") != 0)
-            cd(args[0]);
+        {    
+            if(strstr(args[0],"~") != NULL)
+            {
+                char* fullPath = malloc(sizeof(char) * 120);
+                for(i =0;i<strlen(args[0]);i++)
+                {
+                    if(args[0][i] != '~')
+                    {
+                        fullPath[k++] = args[0][i];
+                    }
+                    else
+                    {
+                        strcat(&fullPath[k],HOME);
+                        k += strlen(HOME);
+                    }
+                }
+
+                fullPath[k] = '\0';
+               // printf("%s\n",fullPath);
+                cd(fullPath);
+            }
+            else
+                cd(args[0]);
+        }
         else
             cd(HOME);
         return 1;
