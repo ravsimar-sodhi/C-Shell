@@ -1,5 +1,10 @@
 Shell
+
+
 * Shell prompt is displayed as <username@hostname:PWD>. PWD is displayed relative to HOME directory, which is set as the directory in which the shell is initially started.
+
+USAGE: make
+       ./shell
 
 * Built-in Commands include
 ** pwd -> returns present working directory
