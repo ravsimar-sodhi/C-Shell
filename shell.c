@@ -207,7 +207,20 @@ int main()
                     else
                     {
                         if((strcmp(args[0],"-a") == 0 && strcmp(args[1],"-l") == 0)||(strcmp(args[0],"-l") == 0 && strcmp(args[1],"-a") == 0))
-                            ls(".",3);
+                        {
+                            if(args[2] != NULL)
+                            {
+                                if(!stat(args[2],&a))
+                                {
+                                    if(S_ISDIR(a.st_mode))
+                                        ls(args[2],3);
+                                    else
+                                        printf("Invalid Directory\n");
+                                }
+                            }
+                            else
+                                ls(".",3);
+                        }
                         else
                         {
                             int flag = 0;
