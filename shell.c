@@ -106,6 +106,46 @@ int checkBuiltIn(char* comm,char** args)
         printf("%s",output);
         return 1;
     }
+    else if(strcmp(comm,"setenv") == 0)
+    {
+        if(args[0] == NULL)
+            printf("Error:Name of variable not found\n");
+        else if(args[2] != NULL)
+            printf("Error: Too many arguements\n");
+        else if(args[1] != NULL)
+            setenv(args[0],args[1],1);
+        else 
+            setenv(args[0],"",1);
+        return 1;
+    }
+    else if(strcmp(comm,"getenv") == 0)
+    {
+        char* out = NULL;
+        if(args[0] == NULL)
+            printf("Error: Name of variable not found\n");
+        else
+            out = getenv(args[0]);
+        if(out == NULL)
+            printf("Error: variable not found in env\n");
+        else
+            printf("%s\n",out);
+        return 1;
+    }
+    else if(strcmp(comm,"unsetenv") == 0)
+    {
+        if(args[0] == NULL)
+            printf("Error: Name of variable not found\n");
+        else
+        {
+            char* out = NULL;
+            out = getenv(args[0]);            
+            if(out == NULL)
+                printf("Error: variable not found in env\n");
+            else if(unsetenv(args[0]) == -1)
+                printf("Error: variable not found in env");
+        }
+        return 1;
+    }
     else 
         return 0;
 }
@@ -133,10 +173,12 @@ void child_terminate()
             }
         }
 }
-
 int main()
 {
     signal(SIGCHLD,child_terminate);
+    struct sigaction act;
+    act.sa_sigaction = SIG_IGN;
+    sigaction(SIGINT,&act,NULL);
     HOME = getPWD();
     int i;
     do
