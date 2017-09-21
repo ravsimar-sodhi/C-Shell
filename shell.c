@@ -185,10 +185,12 @@ void child_terminate()
             }
         }
 }
-
 int main()
 {
     signal(SIGCHLD,child_terminate);
+    struct sigaction act;
+    act.sa_sigaction = SIG_IGN;
+    sigaction(SIGINT,&act,NULL);
     HOME = getPWD();
     int i;
     //printf("%s",HOME);    
