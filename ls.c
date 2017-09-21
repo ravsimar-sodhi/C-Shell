@@ -56,10 +56,8 @@ char* getLastModTime(struct stat info)
     ans[k] = '\0';
     return ans;
 }
-int ls(char **args,int argn)
+int ls(char **args,int argn, char *HOME)
 {
-    // This shows hidden files also//
-    // Effectively, this is 'ls -a'
     int i;
     char *dir = malloc(100);
     dir = ".";
@@ -87,7 +85,24 @@ int ls(char **args,int argn)
                 flag=3;
         }
         else
-            dir = args[i];
+        {
+            if(strcmp(args[i],"~") == 0)
+            {
+                dir = HOME;
+            }
+            else
+            {
+                if(strstr(args[i],"~") != NULL)
+                {
+                    char* fullPath = malloc(sizeof(char) * 120);
+                    strcpy(fullPath,HOME);
+                    strcat(fullPath,&args[0][1]);
+                    dir = fullPath;
+                }
+                else
+                    dir = args[i];
+            }
+        }
     }
     if(stat(dir,&a)==-1)
     {
@@ -168,8 +183,5 @@ int ls(char **args,int argn)
         }
         i++;
     }
-    //free(readir);
-    //free(scdir);
     return 0;
 }
-

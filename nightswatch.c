@@ -1,8 +1,8 @@
-#include<unistd.h>
-#include<termios.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <unistd.h>
+#include <termios.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 void dirty()
 {
     FILE* file = fopen("/proc/meminfo","r");
@@ -56,7 +56,7 @@ void nightswatch(int time,char* command)
     unsigned char key;
     if(strcmp(command,"interrupt") != 0 && strcmp(command,"dirty") !=0)
     {
-        printf("Invalid Command.\n");
+        fprintf(stderr,"Invalid Command.\n");
         return;
     }
     if(strcmp(command,"interrupt") == 0)
@@ -91,7 +91,6 @@ void nightswatch(int time,char* command)
                 break;
             }
         }
-        //dirty();
         if(strcmp(command,"interrupt") == 0)
             interrupt();
         if(strcmp(command,"dirty") == 0)
@@ -101,10 +100,4 @@ void nightswatch(int time,char* command)
     }
     tcsetattr(0,TCSANOW, &old);
     return ;
-}
-int main()
-{
-    nightswatch(1,"interrupt");
-    nightswatch(1,"dirty");    
-    return 0;
 }

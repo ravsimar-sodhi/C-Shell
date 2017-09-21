@@ -7,6 +7,7 @@
 #include <string.h>
 #include <wait.h>
 #include "echo.c"
+#include "nightswatch.c"
 char* HOME;
 typedef struct process
 {
@@ -63,7 +64,6 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
 }
 int checkBuiltIn(char* comm,char** args)
 {
-   // if(comm == "ls")
     char* output;
     if(strcmp(comm,"pwd") == 0)
     {
@@ -73,27 +73,15 @@ int checkBuiltIn(char* comm,char** args)
     }
     else if(strcmp(comm,"cd") == 0)
     {
-        int i,k=0;
+
+        int i,k=strlen(HOME);
         if(args[0] != NULL && strcmp(args[0],"~") != 0)
         {    
             if(strstr(args[0],"~") != NULL)
             {
                 char* fullPath = malloc(sizeof(char) * 120);
-                for(i =0;i<strlen(args[0]);i++)
-                {
-                    if(args[0][i] != '~')
-                    {
-                        fullPath[k++] = args[0][i];
-                    }
-                    else
-                    {
-                        strcat(&fullPath[k],HOME);
-                        k += strlen(HOME);
-                    }
-                }
-
-                fullPath[k] = '\0';
-               // printf("%s\n",fullPath);
+                strcpy(fullPath,HOME);
+                strcat(fullPath,&args[0][1]);
                 cd(fullPath);
             }
             else
@@ -151,7 +139,6 @@ int main()
     signal(SIGCHLD,child_terminate);
     HOME = getPWD();
     int i;
-    //printf("%s",HOME);    
     do
     {
         char* fullPWD = getPWD();
@@ -181,7 +168,17 @@ int main()
                 exit(0);
             else if(strcmp(mainComm,"ls") == 0)
             {
-                ls(args,argN);
+                ls(args,argN,HOME);
+            }
+            else if(strcmp(mainComm,"nightswatch")==0)
+            {
+                if(argN!=3 || strcmp(args[0],"-n")!=0)
+                    fprintf(stderr,"Correct usage: nightswatch -n <seconds> <command>\n");
+                else
+                {
+                    int t = atoi(args[1]);
+                    nightswatch(t,args[2]);
+                }
             }
             else
             {
@@ -200,7 +197,7 @@ int main()
                             exec_arr[z+1]=args[z];
                         }
                         execvp(mainComm,exec_arr);
-                        printf("Failed to execute\n");
+                        fprintf(stderr,"Command Not Found\n");
                         exit(0);
                     }
                     else
