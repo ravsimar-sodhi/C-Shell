@@ -1,11 +1,3 @@
-#include <dirent.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <pwd.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
 void getPermissions(struct stat info,char* perm)
 {
     int i;

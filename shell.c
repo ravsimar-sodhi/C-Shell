@@ -1,13 +1,4 @@
-#include "ls.c"
-#include "pwd.c"
-#include "cd.c"
-#include "user@host.c"
-#include "pinfo.c"
-#include <signal.h>
-#include <string.h>
-#include <wait.h>
-#include "echo.c"
-#include "nightswatch.c"
+#include "headers.h"
 char* HOME;
 typedef struct process
 {
@@ -146,7 +137,7 @@ int checkBuiltIn(char* comm,char** args)
         }
         return 1;
     }
-    else 
+    else
         return 0;
 }
 
@@ -173,12 +164,10 @@ void child_terminate()
             }
         }
 }
+
 int main()
 {
     signal(SIGCHLD,child_terminate);
-    struct sigaction act;
-    act.sa_sigaction = SIG_IGN;
-    sigaction(SIGINT,&act,NULL);
     HOME = getPWD();
     int i;
     do
@@ -232,11 +221,15 @@ int main()
                     if(pid==0)
                     {
                         char *exec_arr[20];
-                        exec_arr[0]=mainComm;
-                        int z;
+                        exec_arr[0] = mainComm;
+                        int z,z1=1;
                         for (z=0;z<=argN;z++)
                         {
-                            exec_arr[z+1]=args[z];
+                            if(args[z]==NULL || strcmp(args[z],"&")!=0)
+                            {
+                                exec_arr[z1] = args[z];
+                                z1++;
+                            }
                         }
                         execvp(mainComm,exec_arr);
                         fprintf(stderr,"Command Not Found\n");
@@ -244,7 +237,7 @@ int main()
                     }
                     else
                     {
-                        if(args[0]==NULL || strcmp(args[0],"&")!=0)
+                        if(args[0]==NULL || strcmp(args[argN-1],"&")!=0)
                             wait(NULL);
                         else
                         {

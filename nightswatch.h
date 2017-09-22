@@ -1,8 +1,3 @@
-#include <unistd.h>
-#include <termios.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 void dirty()
 {
     FILE* file = fopen("/proc/meminfo","r");

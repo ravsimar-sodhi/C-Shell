@@ -1,8 +1,3 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 char* pinfo(int pid)
 {
 	char* spath=malloc(100),*apath = malloc(sizeof(char)*50),*expath = malloc(sizeof(char)* 1000),*status=malloc(5),*mem=malloc(100);

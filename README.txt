@@ -14,4 +14,4 @@ USAGE: make
     *** -l --> displays detailed information
     *** -a --> displays hidden files
 ** pinfo [PID] -> displays process information about the shell's process, or PID if specified
-** nightswatch -> Periodically executes one of the two commands("dirty","interrupts") every n seconds
+** nightswatch -n [seconds] [command]-> Periodically executes one of the two commands("dirty","interrupts") every n seconds. Press 'q' to exit.

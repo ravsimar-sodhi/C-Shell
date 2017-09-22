@@ -1,5 +1,3 @@
-#include<unistd.h>
-#include<stdio.h>
 char* getPWD()
 {
     char* buf=NULL;

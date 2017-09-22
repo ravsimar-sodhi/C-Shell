@@ -1,7 +1,3 @@
-#include<stdio.h>
-#include<pwd.h>
-#include<unistd.h>
-#include<stdlib.h>
 char* getUserName()
 {
     struct passwd* passwd; 
