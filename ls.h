@@ -88,7 +88,7 @@ int ls(char **args,int argn, char *HOME)
                 {
                     char* fullPath = malloc(sizeof(char) * 120);
                     strcpy(fullPath,HOME);
-                    strcat(fullPath,&args[0][1]);
+                    strcat(fullPath,&args[i][1]);
                     dir = fullPath;
                 }
                 else

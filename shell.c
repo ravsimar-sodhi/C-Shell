@@ -4,6 +4,7 @@ typedef struct process
 {
     int proid;
     char *name;
+    char *state;
 }process;
 process dict[100];
 int procNo=0;
@@ -95,6 +96,11 @@ int checkBuiltIn(char* comm,char** args)
         else
             output = pinfo(getpid());
         printf("%s",output);
+        return 1;
+    }
+    else if(strcmp(comm,"kjobs") == 0)
+    {
+    	kjobs(args);
         return 1;
     }
     else if(strcmp(comm,"setenv") == 0)
