@@ -1,13 +1,13 @@
 #include "headers.h"
 char* HOME;
-typedef struct process
+typedef struct job
 {
     int proid;
     char *name;
     char *state;
-}process;
-process dict[100];
-int procNo=0;
+}job;
+job dict[100];
+int jobNo=0;
 char* getInput()
 {
     ssize_t read;
@@ -57,7 +57,7 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     }
     return i-1;
 }
-int checkBuiltIn(char* comm,char** args)
+int checkBuiltIn(char* comm,char** args,int argN)
 {
     char* output;
     if(strcmp(comm,"pwd") == 0)
@@ -101,9 +101,9 @@ int checkBuiltIn(char* comm,char** args)
         printf("%s",output);
         return 1;
     }
-    else if(strcmp(comm,"kjobs") == 0)
+    else if(strcmp(comm,"kjob") == 0)
     {
-    	// kjobs(args);
+    	kjob(args,argN);
         return 1;
     }
     else if(strcmp(comm,"setenv") == 0)
@@ -164,7 +164,7 @@ void child_terminate()
             else
             {
                 int i;
-                for(i=0;i<procNo;i++)
+                for(i=0;i<jobNo;i++)
                 {
                     if(dict[i].proid==pid)
                         pname=dict[i].name;
@@ -225,7 +225,7 @@ int main()
             }
             else
             {
-                int builtin = checkBuiltIn(mainComm,args);
+                int builtin = checkBuiltIn(mainComm,args,argN);
                 if(!builtin)
                 {
                     pid_t pid;
@@ -253,9 +253,9 @@ int main()
                             wait(NULL);
                         else
                         {
-                            dict[procNo].proid = pid;
-                            dict[procNo].name = mainComm;
-                            procNo++;
+                            dict[jobNo].proid = pid;
+                            dict[jobNo].name = mainComm;
+                            jobNo++;
                             printf("%s [%d] started\n",mainComm,pid);
                         }
                     }

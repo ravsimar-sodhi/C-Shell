@@ -17,3 +17,4 @@
 #include "pinfo.h"
 #include "echo.h"
 #include "nightswatch.h"
+#include "kjob.c"
