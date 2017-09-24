@@ -41,6 +41,9 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     int i = 0;
     char* token = strtok(fullComm," \t\n");
     *mainComm = token;
+    if(*mainComm==NULL)
+    	return -1;
+
     if(strcmp(*mainComm,"echo") == 0)
     {
         token = strtok(NULL,";");
@@ -48,7 +51,7 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
         return 1;
     }
     while(token != NULL)
-    {
+    {    	
         token = strtok(NULL," \t\n");
         (*args)[i++] = token;
     }
@@ -100,7 +103,7 @@ int checkBuiltIn(char* comm,char** args)
     }
     else if(strcmp(comm,"kjobs") == 0)
     {
-    	kjobs(args);
+    	// kjobs(args);
         return 1;
     }
     else if(strcmp(comm,"setenv") == 0)
@@ -194,6 +197,7 @@ int main()
         char** commQ =  malloc(sizeof(char*) * 100);
         int commN = 0;
         commN = parseInput(line,&commQ);
+        // printf("%d\n",commN);
         for (i=0;i<commN;i++)
         {
             int j;
@@ -201,6 +205,8 @@ int main()
             char** args = malloc(sizeof(char*) * 100);
             int argN;
             argN = parseCommand(commQ[i],&mainComm,&args);
+            if(mainComm==NULL)
+            	continue;
             if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
                 exit(0);
             else if(strcmp(mainComm,"ls") == 0)
