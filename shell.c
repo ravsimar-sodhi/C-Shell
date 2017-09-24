@@ -1,13 +1,15 @@
 #include "headers.h"
 char* HOME;
-typedef struct job
+int IN = 0;
+int OUT = 1;
+typedef struct process
 {
     int proid;
     char *name;
     char *state;
-}job;
-job dict[100];
-int jobNo=0;
+}process;
+process dict[100];
+int procNo=0;
 char* getInput()
 {
     ssize_t read;
@@ -24,6 +26,37 @@ char* getInput()
         else
             break;
     }
+}
+void checkRedirection(char* fullComm)
+{
+    char* token = strtok(fullComm,"<");
+    
+    // OUT = open() 
+    return ;
+}
+void jobs()
+{
+    int i;
+    for(i=0;i<procNo;i++)
+    {
+        printf("[%d]\t%s \t%s\n",i+1,dict[i].state,dict[i].name);
+    }
+    return;
+}
+
+void removeProc(int pid)
+{
+    int pos;
+    for(int i=0;i<procNo;i++)
+    {
+        if (dict[i].proid==pid)
+        {
+            pos=i;
+            break;
+        }
+    }
+    for (int i=pos;i<procNo-1;i++)
+        dict[i]=dict[i+1];
 }
 
 int parseInput(char* line,char*** commQ)
@@ -57,6 +90,27 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     }
     return i-1;
 }
+
+void kjob(char** args,int argn)
+{
+    if(argn !=2)
+        fprintf(stderr,"Correct usage: kjob <jobNumber> <signalNumber>\n");
+    else
+    {
+        int job_id=atoi(args[0]);
+        int sig_no=atoi(args[1]);
+        if(job_id>procNo || job_id<1)
+            fprintf(stderr,"Job not found\n");
+        else
+        {
+            pid_t pid=dict[job_id-1].proid;
+            int s = kill(pid,sig_no);
+            if(s==-1)
+                fprintf(stderr,"Failed. The signal number might be invalid\n");
+        }
+    }
+}
+
 int checkBuiltIn(char* comm,char** args,int argN)
 {
     char* output;
@@ -146,6 +200,11 @@ int checkBuiltIn(char* comm,char** args,int argN)
         }
         return 1;
     }
+    else if(strcmp(comm,"jobs") == 0)
+    {
+        jobs();
+        return 1;
+    }
     else
         return 0;
 }
@@ -164,12 +223,17 @@ void child_terminate()
             else
             {
                 int i;
-                for(i=0;i<jobNo;i++)
+                for(i=0;i<procNo;i++)
                 {
                     if(dict[i].proid==pid)
+                    {
                         pname=dict[i].name;
+                        break;
+                    }
                 } 
                 fprintf (stderr,"%s with pid: %d terminated %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
+                removeProc(pid);
+                procNo--;
             }
         }
 }
@@ -253,9 +317,10 @@ int main()
                             wait(NULL);
                         else
                         {
-                            dict[jobNo].proid = pid;
-                            dict[jobNo].name = mainComm;
-                            jobNo++;
+                            dict[procNo].proid = pid;
+                            dict[procNo].name = mainComm;
+                            dict[procNo].state = "Running";
+                            procNo++;
                             printf("%s [%d] started\n",mainComm,pid);
                         }
                     }
