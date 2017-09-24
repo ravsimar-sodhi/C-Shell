@@ -1,5 +1,7 @@
 #include "headers.h"
 char* HOME;
+int IN = 0;
+int OUT = 1;
 typedef struct process
 {
     int proid;
@@ -25,7 +27,22 @@ char* getInput()
             break;
     }
 }
-
+// void checkRedirection(char* fullComm)
+// {
+//     char* token = strtok(fullComm,"<");
+    
+//     OUT = open() 
+//     return ;
+// }
+void jobs()
+{
+    int i;
+    for(i=0;i<procNo;i++)
+    {
+        printf("[%d]\t%s \t%s\n",i+1,dict[i].state,dict[i].name);
+    }
+    return;
+}
 int parseInput(char* line,char*** commQ)
 {
     int i = 0 ;
@@ -146,6 +163,11 @@ int checkBuiltIn(char* comm,char** args)
         }
         return 1;
     }
+    else if(strcmp(comm,"jobs") == 0)
+    {
+        jobs();
+        return 1;
+    }
     else
         return 0;
 }
@@ -170,6 +192,15 @@ void child_terminate()
                         pname=dict[i].name;
                 } 
                 fprintf (stderr,"%s with pid: %d terminated %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
+                int flag = 0;
+                for(i=0;i<procNo;i++)
+                {
+                    if(dict[i].proid==pid)
+                        flag = 1;
+                    if(flag == 1)
+                        dict[i] = dict[i+1];
+                } 
+                procNo--;
             }
         }
 }
@@ -255,6 +286,7 @@ int main()
                         {
                             dict[procNo].proid = pid;
                             dict[procNo].name = mainComm;
+                            dict[procNo].state = "Running";
                             procNo++;
                             printf("%s [%d] started\n",mainComm,pid);
                         }
