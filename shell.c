@@ -4,7 +4,7 @@ int IN = 0;
 int OUT = 1;
 typedef struct process
 {
-    int proid;
+    pid_t proid;
     char *name;
     char *state;
 }process;
@@ -158,6 +158,12 @@ int checkBuiltIn(char* comm,char** args,int argN)
     else if(strcmp(comm,"kjob") == 0)
     {
     	kjob(args,argN);
+        return 1;
+    }
+    else if(strcmp(comm,"overkill") == 0)
+    {
+        for(int i=procNo-1;i>=0;i--)
+            kill(dict[i].proid,9);
         return 1;
     }
     else if(strcmp(comm,"setenv") == 0)
