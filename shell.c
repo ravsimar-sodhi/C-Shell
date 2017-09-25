@@ -304,7 +304,16 @@ void child_terminate()
             }
         }
 }
-
+int parseForPipes(char* line,char*** commQ)
+{
+    int i = 0 ;
+    (*commQ)[i] = strtok(line,"|");
+    while((*commQ)[i] != NULL)
+    {
+        (*commQ)[++i] = strtok(NULL,"|");
+    }
+    return i;
+}
 int main()
 {
     signal(SIGCHLD,child_terminate);
@@ -335,83 +344,131 @@ int main()
         for (i=0;i<commN;i++)
         {
             int j;
-            char* mainComm = malloc(sizeof(char) * 25);
-            char** args = malloc(sizeof(char*) * 100);
-            int argN;
-            argN = parseCommand(commQ[i],&mainComm,&args);
-            if(mainComm==NULL)
-            	continue;
-            if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
-                exit(0);
-            else if(strcmp(mainComm,"ls") == 0)
+            char** pipeQ =  malloc(sizeof(char*) * 100);
+            int pipeN = parseForPipes(commQ[i],&pipeQ);
+            int pipefd[2];
+            // int pipepfd[2];
+            // int pipecfd[2];
+            int fd_in=0;
+            for(int j=0;j<pipeN;j++)
             {
-                ls(args,argN,HOME);
-            }
-            else if(strcmp(mainComm,"nightswatch")==0)
-            {
-                if(argN!=3 || strcmp(args[0],"-n")!=0)
-                    fprintf(stderr,"Correct usage: nightswatch -n <seconds> <command>\n");
-                else
+            
+                // if(pipeN > 1)
+                // {
+                //     if(j == 0)
+                //     {
+                //         pipe(pipepfd);
+                //         dup2(pipepfd[1],STDOUT_FILENO);
+                //     }
+                //     if(j > 0)
+                //     {
+                //         puts("dafsdf");
+                //         fd_in = pipepfd[1];
+                //         pipe(pipepfd);
+                //         // dup2(STDIN_FILENO,fd_in);
+                //         dup2(fd_in,STDIN_FILENO);
+                //         dup2(pipepfd[0],fd_in);
+                //         // STDIN_FILENO = fd_in;
+                //         printf("fd:%d std:%d\n",fd_in,STDIN_FILENO);
+                        
+                //         puts("dafsdfdsafs");
+                //         close(pipepfd[0]);
+                //     }
+                // }
+                // printf(":%s:",pipeQ[j]);
+                char* mainComm = malloc(sizeof(char) * 25);
+                char** args = malloc(sizeof(char*) * 100);
+                int argN;
+                // argN = parseCommand(commQ[i],&mainComm,&args);
+                argN = parseCommand(pipeQ[j],&mainComm,&args);
+                if(mainComm==NULL)
+                    continue;
+                if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
+                    exit(0);
+                else if(strcmp(mainComm,"ls") == 0)
                 {
-                    int t = atoi(args[1]);
-                    nightswatch(t,args[2]);
+                    ls(args,argN,HOME);
                 }
-            }
-            else
-            {
-                int builtin = checkBuiltIn(mainComm,args,argN);
-                if(!builtin)
+                else if(strcmp(mainComm,"nightswatch")==0)
                 {
-                    pid_t pid;
-                    pid=fork();
-                    if(pid==0)
-                    {
-                        char *exec_arr[20];
-                        exec_arr[0] = mainComm;
-                        int z,z1=1;
-                        for(z=0;z<=argN;z++)
-                        {
-                            if(args[z]==NULL || strcmp(args[z],"&")!=0)
-                            {
-                                exec_arr[z1] = args[z];
-                                z1++;
-                            }
-                        }
-                        execvp(mainComm,exec_arr);
-                        fprintf(stderr,"Command Not Found\n");
-                        exit(0);
-                    }
+                    if(argN!=3 || strcmp(args[0],"-n")!=0)
+                        fprintf(stderr,"Correct usage: nightswatch -n <seconds> <command>\n");
                     else
                     {
-                        if(args[0]==NULL || strcmp(args[argN-1],"&")!=0)
-                            wait(NULL);
+                        int t = atoi(args[1]);
+                        nightswatch(t,args[2]);
+                    }
+                }
+                else
+                {
+                    int builtin = checkBuiltIn(mainComm,args,argN);
+                    if(!builtin)
+                    {
+                        pipe(pipefd);
+                        pid_t pid;
+                        pid=fork();
+                        if(pid==0)
+                        {
+                            dup2(fd_in,0);
+                            if(j+1 < pipeN && pipeQ[j+1] != NULL)
+                            {
+                                dup2(pipefd[1],STDOUT_FILENO);
+                                close(pipefd[1]);
+                            }
+                            char *exec_arr[20];
+                            exec_arr[0] = mainComm;
+                            int z,z1=1;
+                            for(z=0;z<=argN;z++)
+                            {
+                                if(args[z]==NULL || strcmp(args[z],"&")!=0)
+                                {
+                                    exec_arr[z1] = args[z];
+                                    z1++;
+                                }
+                            }
+                            execvp(mainComm,exec_arr);
+                            fprintf(stderr,"Command Not Found\n");
+                            exit(0);
+                        }
                         else
                         {
-                            dict[procNo].proid = pid;
-                            dict[procNo].name = mainComm;
-                            dict[procNo].state = "Running";
-                            procNo++;
-                            printf("%s [%d] started\n",mainComm,pid);
+                            if(args[0]==NULL || strcmp(args[argN-1],"&")!=0)
+                                wait(NULL);
+                            else
+                            {
+                                dict[procNo].proid = pid;
+                                dict[procNo].name = mainComm;
+                                dict[procNo].state = "Running";
+                                procNo++;
+                                printf("%s [%d] started\n",mainComm,pid);
+                            }
+                            fd_in=pipefd[0];
+                            close(pipefd[1]);
                         }
                     }
                 }
-            }
-            if(dup(STDOUT_FILENO) != OUT)
-            {
-                fflush(stdout);
-                close(STDOUT_FILENO);
-                dup2(OUT,STDOUT_FILENO);
-                // fflush(stdout);
                 
-            }
-            if(dup(STDIN_FILENO) != IN)
-            {
-                fflush(stdin);       
-                close(STDIN_FILENO);
+                if(dup(STDOUT_FILENO) != OUT)
+                {
+                    fflush(stdout);
+                    close(STDOUT_FILENO);
+                    dup2(OUT,STDOUT_FILENO);
+                    // fflush(stdout);
+                    
+                }
+                if(dup(STDIN_FILENO) != IN)
+                {
+                    fflush(stdin);       
+                    close(STDIN_FILENO);
                 dup2(IN,STDIN_FILENO);
                 // fflush(stdin);                
-                
-            }
+                }
+                // if(j < pipeN-1)
+                // {
+                    // dup2(pipepfd[1],STDOUT_FILENO);
+                // }
+        }
+        
         }
         free(PWD);
         free(commQ);
