@@ -27,7 +27,6 @@ char* getInput()
         else
             return NULL;
     }
-    // return NULL;
 }
 
 void jobs()
@@ -104,10 +103,8 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
     int i = 0;
     checkRedirection(fullComm,"<");
     checkRedirection(fullComm,">");
-    // printf("fullComm:%d\n",strlen(fullComm));
     for(i=0;i<strlen(fullComm);i++)
     {
-        // printf("%c ",fullComm[i]);    
         if(fullComm[i] == '<')
         {
             if(checkRedirection(fullComm,"<") == 0)
@@ -116,22 +113,17 @@ int parseCommand(char* fullComm,char** mainComm, char*** args)
                 return -1;
             }
             strtok(fullComm,"<");
-            // fullComm[i-1] = '\0';
-            // strtok(NULL," ");
             break;
         }
         if(fullComm[i] == '>')
         {
             strtok(fullComm,">");
-            // fullComm[i-1] = '\0';
-            // strtok(NULL," ");
             break;
         }
     }
     char* token;
     if(i == strlen(fullComm))
         token = strtok(fullComm," \t\n");
-        // token = strtok(NULL," \t\n");
     else
         token = strtok(NULL," \t\n");
     i=0;
@@ -371,7 +363,23 @@ void child_terminate()
 }
 void ctrlC_handler()
 {
-    return ;
+    killpg(200,SIGCONT);
+    killpg(100,SIGKILL);
+    // return ;
+}
+void ctrlZ_handler()
+{
+    if(!fg)
+        return ;
+    else
+    {
+        kill(fgproc.proid,SIGSTOP);
+        dict[procNo].proid = fgproc.proid;
+        dict[procNo].name = fgproc.name;
+        dict[procNo].state = "Stopped";
+        procNo++;
+        printf("\n%s [%d] stopped\n",fgproc.name,fgproc.proid);
+    }
 }
 int parseForPipes(char* line,char*** commQ)
 {
@@ -388,6 +396,7 @@ int main()
     signal(SIGCHLD,child_terminate);
     signal(SIGINT,ctrlC_handler);
     signal(SIGQUIT,ctrlC_handler);
+    signal(SIGTSTP,ctrlZ_handler);
     HOME = getPWD();
     int OUT = dup(1);
     int IN = dup(0);
@@ -415,15 +424,12 @@ int main()
         char** commQ =  malloc(sizeof(char*) * 100);
         int commN = 0;
         commN = parseInput(line,&commQ);
-        // printf("%d\n",commN);
         for (i=0;i<commN;i++)
         {
             int j;
             char** pipeQ =  malloc(sizeof(char*) * 100);
             int pipeN = parseForPipes(commQ[i],&pipeQ);
             int pipefd[2];
-            // int pipepfd[2];
-            // int pipecfd[2];
             int fd_in=0;
             for(int j=0;j<pipeN;j++)
             {
@@ -433,11 +439,10 @@ int main()
                     char* mainComm = malloc(sizeof(char) * 25);
                     char** args = malloc(sizeof(char*) * 100);
                     int argN;
-                    // argN = parseCommand(commQ[i],&mainComm,&args);
                     argN = parseCommand(pipeQ[j],&mainComm,&args);
                     if(mainComm==NULL)
                         continue;
-                    if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
+                    if(strcmp(mainComm,"quit")==0)
                         exit(0);
                     else
                     {
@@ -477,7 +482,7 @@ int main()
                                     is_fg=1;
                                     fgproc.proid = pid;
                                     fgproc.name = mainComm;
-                                    waitpid(pid,NULL,WCONTINUED);
+                                    waitpid(pid,NULL,WCONTINUED | WUNTRACED);
                                     is_fg=0;
                                 }
                                 else
@@ -494,38 +499,16 @@ int main()
                         }
                     }
                 }
-                // {
-                //     if(j == 0)
-                //     {
-                //         pipe(pipepfd);
-                //         dup2(pipepfd[1],STDOUT_FILENO);
-                //     }
-                //     if(j > 0)
-                //     {
-                //         puts("dafsdf");
-                //         fd_in = pipepfd[1];
-                //         pipe(pipepfd);
-                //         // dup2(STDIN_FILENO,fd_in);
-                //         dup2(fd_in,STDIN_FILENO);
-                //         dup2(pipepfd[0],fd_in);
-                //         // STDIN_FILENO = fd_in;
-                //         printf("fd:%d std:%d\n",fd_in,STDIN_FILENO);
-                        
-                //         puts("dafsdfdsafs");
-                //         close(pipepfd[0]);
-                //     }
-                // }
-                // printf(":%s:",pipeQ[j]);
+               
                 else
                 {
                     char* mainComm = malloc(sizeof(char) * 25);
                     char** args = malloc(sizeof(char*) * 100);
                     int argN;
-                    // argN = parseCommand(commQ[i],&mainComm,&args);
                     argN = parseCommand(pipeQ[j],&mainComm,&args);
                     if(mainComm==NULL)
                         continue;
-                    if(strcmp(mainComm,"exit")==0 || strcmp(mainComm,"quit")==0)
+                    if(strcmp(mainComm,"quit")==0)
                         exit(0);
                     else if(strcmp(mainComm,"ls") == 0)
                     {
@@ -579,11 +562,13 @@ int main()
                                     is_fg=1;
                                     fgproc.proid = pid;
                                     fgproc.name = mainComm;
-                                    waitpid(pid,NULL,WCONTINUED);
+                                    setpgid(pid,100);
+                                    waitpid(pid,NULL,WCONTINUED | WUNTRACED);
                                     is_fg=0;
                                 }
                                 else
                                 {
+                                    setpgid(pid,200);
                                     dict[procNo].proid = pid;
                                     dict[procNo].name = mainComm;
                                     dict[procNo].state = "Running";
@@ -602,7 +587,6 @@ int main()
                     fflush(stdout);
                     close(STDOUT_FILENO);
                     dup2(OUT,STDOUT_FILENO);
-                    // fflush(stdout);
                     
                 }
                 if(dup(STDIN_FILENO) != IN)
@@ -610,12 +594,7 @@ int main()
                     fflush(stdin);       
                     close(STDIN_FILENO);
                 dup2(IN,STDIN_FILENO);
-                // fflush(stdin);                
                 }
-                // if(j < pipeN-1)
-                // {
-                    // dup2(pipepfd[1],STDOUT_FILENO);
-                // }
         }
         
         }
