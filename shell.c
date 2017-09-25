@@ -9,7 +9,8 @@ typedef struct process
     char *state;
 }process;
 process dict[100];
-int procNo=0;
+process fgproc;
+int procNo=0,is_fg=0;
 char* getInput()
 {
     ssize_t read;
@@ -111,6 +112,60 @@ void kjob(char** args,int argn)
     }
 }
 
+void fg(char** args,int argn)
+{
+    if(argn !=1)
+        fprintf(stderr,"Correct usage: fg <jobNumber>\n");
+    else
+    {
+        int job_id=atoi(args[0]);
+        if(job_id>procNo || job_id<1)
+            fprintf(stderr,"Job not found\n");
+        else
+        {
+            pid_t pid=dict[job_id-1].proid;
+            int s = kill(pid,SIGCONT);
+            if(s==-1)
+                fprintf(stderr,"Failed\n");
+            else
+            {
+                printf("Bringing %s to foreground...\n",dict[job_id-1].name);
+                is_fg=1;
+                fgproc.proid = pid;
+                fgproc.name = dict[job_id-1].name;
+                removeProc(pid);
+                procNo--;
+                waitpid(pid,NULL,WCONTINUED);
+                is_fg=0;
+            }
+        }
+    }
+}
+
+void bg(char** args,int argn)
+{
+    if(argn !=1)
+        fprintf(stderr,"Correct usage: bg <jobNumber>\n");
+    else
+    {
+        int job_id=atoi(args[0]);
+        if(job_id>procNo || job_id<1)
+            fprintf(stderr,"Job not found\n");
+        else
+        {
+            pid_t pid=dict[job_id-1].proid;
+            int s = kill(pid,SIGCONT);
+            if(s==-1)
+                fprintf(stderr,"Failed\n");
+            else
+            {
+                printf("Bringing %s to background...\n",dict[job_id-1].name);
+                dict[job_id-1].state="Running";
+            }
+        }
+    }
+}
+
 int checkBuiltIn(char* comm,char** args,int argN)
 {
     char* output;
@@ -158,6 +213,16 @@ int checkBuiltIn(char* comm,char** args,int argN)
     else if(strcmp(comm,"kjob") == 0)
     {
     	kjob(args,argN);
+        return 1;
+    }
+    else if(strcmp(comm,"fg") == 0)
+    {
+        fg(args,argN);
+        return 1;
+    }
+    else if(strcmp(comm,"bg") == 0)
+    {
+        bg(args,argN);
         return 1;
     }
     else if(strcmp(comm,"overkill") == 0)
@@ -237,16 +302,25 @@ void child_terminate()
                         break;
                     }
                 } 
-                fprintf (stderr,"%s with pid: %d terminated %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
+                fprintf (stdout,"%s with pid: %d terminated %s\n", pname,pid,(wstat.w_retcode==0)?"normally":"abnormally");
                 removeProc(pid);
                 procNo--;
             }
         }
 }
 
+void ctrlC_handler()
+{
+    return ;
+}
+
+
 int main()
 {
+
     signal(SIGCHLD,child_terminate);
+    signal(SIGINT,ctrlC_handler);
+    signal(SIGQUIT,ctrlC_handler);
     HOME = getPWD();
     int i;
     do
@@ -264,6 +338,8 @@ int main()
         printf("\033[1;32m<%s@\033[0m\033[1;32m%s\033[0m:\033[1;34m%s>\033[0m",getUserName(),getHostName(),PWD);
         
         char* line = getInput();
+        if (line[0]==EOF)
+            continue;
         char** commQ =  malloc(sizeof(char*) * 100);
         int commN = 0;
         commN = parseInput(line,&commQ);
@@ -320,7 +396,14 @@ int main()
                     else
                     {
                         if(args[0]==NULL || strcmp(args[argN-1],"&")!=0)
-                            wait(NULL);
+                        {
+                            is_fg=1;
+                            fgproc.proid = pid;
+                            fgproc.name = mainComm;
+                            waitpid(pid,NULL,WCONTINUED);
+
+                            is_fg=0;
+                        }
                         else
                         {
                             dict[procNo].proid = pid;
