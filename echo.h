@@ -4,6 +4,7 @@ char* echo(char* arg)
     int size = 0;
     while(arg[size] != '\0') size++;
     size--;
+    // printf("%s",arg);
     if((size == 0 && (arg[0] == '\'' || arg[0] == '"'))||((arg[0] == '"' && arg[size] != '"') || (arg[size] == '"' && arg[0] != '"')))
     {
         printf("Error");

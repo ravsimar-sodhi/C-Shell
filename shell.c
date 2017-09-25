@@ -26,14 +26,9 @@ char* getInput()
         else
             break;
     }
+    // return NULL;
 }
-void checkRedirection(char* fullComm)
-{
-    char* token = strtok(fullComm,"<");
-    
-    // OUT = open() 
-    return ;
-}
+
 void jobs()
 {
     int i;
@@ -69,11 +64,77 @@ int parseInput(char* line,char*** commQ)
     }
     return i;
 }
+int checkRedirection(char* fullComm,char* delim)
+{
+     int i;
+     char copy[1000];
+     for (i=0;i<strlen(fullComm);i++)
+         copy[i] = fullComm[i];
+    // printf("makes copy\n");
+    copy[strlen(fullComm)] = '\0';
+    char* token = strtok(copy,delim);
+     char* file = strtok(NULL," ");
+     if(file != NULL)
+     {
+         if(delim == ">")
+         {
+             int f = open(file, O_TRUNC | O_WRONLY | O_CREAT, S_IRWXU);
+             dup2(f,STDOUT_FILENO);
+             close(f);
+         }
+         else if(delim == "<")
+         {
+             int f = open(file, O_RDONLY);
+             if(f == -1)
+             {
+                 return 0;
+             }
+             dup2(f,STDIN_FILENO);
+             close(f);
+         }
+         return 1;
+     }
+     else
+         return 0;
+}
+
 int parseCommand(char* fullComm,char** mainComm, char*** args)
 {
     int i = 0;
-    char* token = strtok(fullComm," \t\n");
-    *mainComm = token;
+    checkRedirection(fullComm,"<");
+    checkRedirection(fullComm,">");
+    // printf("fullComm:%d\n",strlen(fullComm));
+    for(i=0;i<strlen(fullComm);i++)
+    {
+        // printf("%c ",fullComm[i]);    
+        if(fullComm[i] == '<')
+        {
+            if(checkRedirection(fullComm,"<") == 0)
+            {
+                perror("shell");
+                return -1;
+            }
+            strtok(fullComm,"<");
+            // fullComm[i-1] = '\0';
+            // strtok(NULL," ");
+            break;
+        }
+        if(fullComm[i] == '>')
+        {
+            strtok(fullComm,">");
+            // fullComm[i-1] = '\0';
+            // strtok(NULL," ");
+            break;
+        }
+    }
+    char* token;
+    if(i == strlen(fullComm))
+        token = strtok(fullComm," \t\n");
+        // token = strtok(NULL," \t\n");
+    else
+        token = strtok(NULL," \t\n");
+    i=0;
+        *mainComm = token;
     if(*mainComm==NULL)
     	return -1;
 
@@ -248,6 +309,8 @@ int main()
 {
     signal(SIGCHLD,child_terminate);
     HOME = getPWD();
+    int OUT = dup(1);
+    int IN = dup(0);
     int i;
     do
     {
@@ -264,6 +327,7 @@ int main()
         printf("\033[1;32m<%s@\033[0m\033[1;32m%s\033[0m:\033[1;34m%s>\033[0m",getUserName(),getHostName(),PWD);
         
         char* line = getInput();
+        // printf("line:%s\n",line);
         char** commQ =  malloc(sizeof(char*) * 100);
         int commN = 0;
         commN = parseInput(line,&commQ);
@@ -305,7 +369,7 @@ int main()
                         char *exec_arr[20];
                         exec_arr[0] = mainComm;
                         int z,z1=1;
-                        for (z=0;z<=argN;z++)
+                        for(z=0;z<=argN;z++)
                         {
                             if(args[z]==NULL || strcmp(args[z],"&")!=0)
                             {
@@ -331,6 +395,22 @@ int main()
                         }
                     }
                 }
+            }
+            if(dup(STDOUT_FILENO) != OUT)
+            {
+                fflush(stdout);
+                close(STDOUT_FILENO);
+                dup2(OUT,STDOUT_FILENO);
+                // fflush(stdout);
+                
+            }
+            if(dup(STDIN_FILENO) != IN)
+            {
+                fflush(stdin);       
+                close(STDIN_FILENO);
+                dup2(IN,STDIN_FILENO);
+                // fflush(stdin);                
+                
             }
         }
         free(PWD);
