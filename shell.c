@@ -25,7 +25,7 @@ char* getInput()
             return buffer;
         }
         else
-            break;
+            return NULL;
     }
     // return NULL;
 }
@@ -385,7 +385,6 @@ int parseForPipes(char* line,char*** commQ)
 }
 int main()
 {
-
     signal(SIGCHLD,child_terminate);
     signal(SIGINT,ctrlC_handler);
     signal(SIGQUIT,ctrlC_handler);
@@ -408,6 +407,11 @@ int main()
         printf("\033[1;32m<%s@\033[0m\033[1;32m%s\033[0m:\033[1;34m%s>\033[0m",getUserName(),getHostName(),PWD);
         
         char* line = getInput();
+        if(line==NULL)
+        {
+            printf("\n");
+            continue;
+        }
         char** commQ =  malloc(sizeof(char*) * 100);
         int commN = 0;
         commN = parseInput(line,&commQ);
